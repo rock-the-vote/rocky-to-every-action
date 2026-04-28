@@ -1,0 +1,70 @@
+name: Rocky → Every Action Sync
+
+on:
+  # Runs every hour. Adjust the cron expression to change frequency.
+  # Runs once a day at 9am UTC. Adjust as needed.
+  # Examples:
+  #   '0 9 * * *'    — once a day at 9am UTC (recommended)
+  #   '0 9,17 * * *' — twice a day
+  #   '0 */4 * * *'  — every 4 hours
+  # Cron helper: https://crontab.guru
+  schedule:
+    - cron: '0 9 * * *'
+
+  # Lets you trigger a manual run from the GitHub Actions UI.
+  # Go to Actions → Rocky → Every Action Sync → Run workflow
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (log only, no writes to Every Action)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+jobs:
+  sync:
+    name: Sync registrants
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check repo visibility
+        if: ${{ !github.event.repository.private }}
+        run: |
+          echo "::error::This repository is public. Voter data must not be visible in run logs. Go to Settings → General → Danger Zone and set visibility to Private before running this sync."
+          exit 1
+
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run sync
+        env:
+          ROCKY_PARTNER_ID:  ${{ secrets.ROCKY_PARTNER_ID }}
+          ROCKY_API_KEY:     ${{ secrets.ROCKY_API_KEY }}
+          EA_API_KEY:        ${{ secrets.EA_API_KEY }}
+          EA_LOGIN_NAME:     ${{ secrets.EA_LOGIN_NAME }}
+          EA_DATABASE:       ${{ secrets.EA_DATABASE }}
+          # Override dry_run via manual trigger without editing config.yml
+          DRY_RUN_OVERRIDE:  ${{ github.event.inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN_OVERRIDE" = "true" ]; then
+            python -c "
+          import yaml, sys
+          with open('config.yml') as f:
+              c = yaml.safe_load(f)
+          c['dry_run'] = True
+          with open('config.yml', 'w') as f:
+              yaml.dump(c, f)
+          "
+          fi
+          python sync.py

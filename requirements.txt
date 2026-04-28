@@ -1,0 +1,4 @@
+parsons
+suds-community
+pyyaml>=6.0.3
+python-dotenv>=1.2.2

@@ -1,0 +1,67 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Rocky → Every Action Sync — Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+# Credentials go in GitHub Secrets (never in this file).
+# Only non-sensitive settings live here.
+
+
+# Set to true to run without writing anything to Every Action.
+# Logs what would be synced. Flip to false when you're ready to go live.
+dry_run: true
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Tools
+# Enable the Rocky tools you want to sync. Each tool can have its own
+# lookback window and Every Action Activist Code.
+#
+# lookback_days: how many days back to check on each run (default: 1)
+# activist_code_id: apply an EA Activist Code to every synced person (optional)
+#   Find your code ID in EA: Contacts → Activist Codes → click your code → ID in URL
+# ─────────────────────────────────────────────────────────────────────────────
+
+tools:
+
+  # Online Voter Registration
+  registration:
+    enabled: true
+    lookback_days: 30
+    activist_code_id: null
+
+  # Online Voter Registration (extended format — includes UTM params, state API
+  # submission status, previous names, and PA app fields)
+  registration_extended:
+    enabled: false
+    lookback_days: 30
+    activist_code_id: null
+
+  # Pledge to Vote
+  pledge:
+    enabled: false
+    lookback_days: 30
+    activist_code_id: null
+
+  # Absentee Ballot Request
+  absentee:
+    enabled: false
+    lookback_days: 30
+    activist_code_id: null
+
+  # Voter Status Lookup
+  lookup:
+    enabled: false
+    lookback_days: 30
+    activist_code_id: null
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Rocky field reference (columns returned by reports)
+# ─────────────────────────────────────────────────────────────────────────────
+# first_name          last_name           email_address
+# phone               phone_type          date_of_birth       (format: YYYY-MM-DD)
+# home_address        home_city           home_state          home_zip_code
+# status              tracking_source     language
+#
+# To see all columns for a specific tool, set LOG_LEVEL=DEBUG in the
+# GitHub Actions workflow and check the run log.
+# ─────────────────────────────────────────────────────────────────────────────
