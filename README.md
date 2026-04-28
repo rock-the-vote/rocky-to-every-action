@@ -6,6 +6,20 @@ When someone uses a Rock the Vote tool, this integration extends how partners ca
 
 ---
 
+- [Why this matters](#why-this-matters)
+- [How it works](#how-it-works)
+- [Security and data privacy](#security-and-data-privacy)
+- [Before you start](#before-you-start)
+- [Setup guide](#setup-guide)
+- [Changing the sync frequency](#changing-the-sync-frequency)
+- [Enabling additional tools](#enabling-additional-tools)
+- [Optional: Tag synced contacts with an Activist Code](#optional-tag-synced-contacts-with-an-activist-code)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [For developers — running locally](#for-developers--running-locally)
+
+---
+
 ## Why this matters
 
 Rocky is a powerful platform for voter registration, absentee ballot requests, pledge to vote campaigns, voter status lookups, and more.
@@ -321,20 +335,90 @@ GitHub automatically emails you when a workflow fails. Click **View workflow run
 
 ## FAQ
 
-**How far back does it look on each run?**
+**How far back does it look on each run?**<br>
 By default, 1 day. This creates a small overlap between runs so no registrations are missed. You can change `lookback_days` in `config.yml`.
 
-**What if the same person is synced twice?**
+**What if the same person is synced twice?**<br>
 Every Action's upsert logic matches on name + email. If the person already exists they are updated, not duplicated.
 
-**Does this sync registration status (submitted, under 18, etc.)?**
+**Does this sync registration status (submitted, under 18, etc.)?**<br>
 Not by default — it syncs contact information only. If you need to filter by status, contact Rock the Vote for guidance on which status values to include or exclude.
 
-**Is there a cost?**
+**Is there a cost?**<br>
 GitHub's free plan includes 2,000 Actions minutes per month. An hourly sync uses roughly 120 minutes per month, well within the free limit.
 
-**What if I want to stop the sync?**
+**What if I want to stop the sync?**<br>
 Go to Actions → Rocky → Every Action Sync → the three-dot menu (⋯) → **Disable workflow**.
+
+**Does this sync people who only completed step 1 of a voter registration (partial registrations)?**<br>
+Yes — Rocky's reports include partial completions alongside fully submitted registrations. If you need to separate them, the `status` field is available in the report data. For voter registrations, common status values include `step_1`, `step_2`, `step_3`, `step_4`, `under_18`, `complete`, and `rejected`. These may vary depending on your Rocky version — if you're unsure, enable `LOG_LEVEL: DEBUG` to inspect the raw values coming through.
+
+**Can I get real-time or near-real-time syncs?**<br>
+Not quite. Rocky's API is date-based polling rather than event-driven, so there is no way to trigger an instant push when someone completes a form. Hourly is the practical minimum (set `cron: '0 * * * *'` in the workflow file), but once a day is recommended — Rocky filters by date only, so every run pulls the full current day regardless of how often you run.
+
+---
+
+## For developers — running locally
+
+Use this to test changes without triggering a GitHub Actions run.
+
+### 1 — Clone the repo
+
+```
+git clone https://github.com/YOUR-USERNAME/rocky-ea-sync
+cd rocky-ea-sync
+```
+
+### 2 — Create a `.env` file
+
+Create a file named `.env` in the root of the repo and add your credentials:
+
+```
+ROCKY_PARTNER_ID=your_partner_id
+ROCKY_API_KEY=your_rocky_api_key
+EA_API_KEY=your_ea_api_key
+EA_LOGIN_NAME=your_ea_login_name
+EA_DATABASE=EveryAction
+```
+
+This file is listed in `.gitignore` and will never be committed. Do not rename it.
+
+### 3 — Create and activate a virtual environment
+
+Modern Python on macOS and Linux blocks installing packages outside a virtual environment. You need to create one first:
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+On Windows:
+```
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+You should see `(.venv)` in your terminal prompt. If you skip this step and see an `externally-managed-environment` error, come back here.
+
+### 4 — Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+Note: inside an activated virtual environment, `pip` works — no need for `pip3`.
+
+### 5 — Run the sync
+
+Make sure `dry_run: true` is set in `config.yml`, then:
+
+```
+python sync.py
+```
+
+A successful dry run prints a line for each record it would sync, followed by a summary. No data is written to Every Action.
+
+When you're ready to test a live write, set `dry_run: false` in `config.yml` and run again. Change it back when you're done.
 
 ---
 
