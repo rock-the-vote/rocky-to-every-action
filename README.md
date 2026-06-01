@@ -128,9 +128,13 @@ Gather these four credentials before you begin. You will paste them into GitHub 
 - **Partner ID**
 - **API Key** — reach out to support for this key
 
-**From Every Action:**
-- **API Key** — request one by logging into EA → Administrative Menu → Integrations → API Integrations → **Request an API Key**. Leave the integration dropdown blank (this is a custom integration). You may see a message that says *"Didn't find what you were looking for? Submit a Support Request"* — ignore it and proceed. Your EA admin will receive an approval request — once approved, your key will be available in the API Keys section of that same page.
-- **Database name** — almost always `EveryAction`. Use `MyCampaign` if your EA rep told you so.
+**From EveryAction:**
+- **API Key** — Log into EveryAction and navigate to Administrative Menu → Integrations → API Integrations.
+
+  Request or create an API key for use with the Rock the Vote integration. EveryAction API keys are tied to specific security profiles and permissions. Depending on your organization's setup, an EveryAction administrator, account representative, or NGP VAN support staff may need to configure the key with the appropriate access before it can be used.
+
+  If you are unsure which permissions are required, contact your EveryAction representative for assistance.
+- **Database name** — Usually `EveryAction`. Use `MyCampaign` only if instructed to do so by your EveryAction representative.
 
 ---
 
